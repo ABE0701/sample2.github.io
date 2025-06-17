@@ -1,1 +1,1343 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>授業振り返りレポート</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <style>
+        /* Custom font for better readability */
+        body {
+            font-family: "Inter", sans-serif;
+        }
+        /* Ensure canvas elements scale correctly */
+        canvas {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50 antialiased">
+    <!-- Header / Landing Page section -->
+    <header class="relative w-full h-64 bg-gradient-to-br from-blue-500 to-purple-600 flex flex-col justify-center items-center text-white p-6 shadow-xl rounded-b-3xl">
+        <div class="text-center">
+            <h1 class="text-4xl sm:text-5xl font-extrabold mb-2 leading-tight">
+                授業振り返りレポート
+            </h1>
+            <p class="text-xl sm:text-2xl font-light opacity-90">
+                生徒の学習成果と成長を可視化
+            </p>
+        </div>
+        <!-- Tabs for navigation -->
+        <div class="absolute bottom-[-2.5rem] flex space-x-2 bg-white p-2 rounded-full shadow-lg">
+            <button id="studentReportTab" class="px-6 py-3 rounded-full text-lg font-semibold transition-all duration-300 ease-in-out bg-blue-600 text-white shadow-md">
+                生徒別レポート
+            </button>
+            <button id="dateAnalysisTab" class="px-6 py-3 rounded-full text-lg font-semibold transition-all duration-300 ease-in-out bg-gray-100 text-gray-700 hover:bg-gray-200">
+                日付ごとの割合分析
+            </button>
+        </div>
+    </header>
 
+    <!-- Main content area -->
+    <main class="container mx-auto px-4 py-16 pt-24">
+        <!-- Student Report Section -->
+        <section id="studentReportSection" class="bg-white rounded-xl shadow-lg p-8 mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 border-b pb-3">
+                生徒別の学習カルテ
+            </h2>
+            <div class="mb-8">
+                <label for="attendanceSelect" class="block text-xl font-medium text-gray-700 mb-3">
+                    出席番号を選択してください:
+                </label>
+                <div class="relative">
+                    <select
+                        id="attendanceSelect"
+                        class="block w-full md:w-1/2 lg:w-1/3 p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-lg appearance-none bg-white pr-10 transition-all duration-200 ease-in-out hover:border-gray-400"
+                    >
+                        <!-- Options will be populated by JavaScript -->
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-700">
+                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            <div id="studentReportsContainer" class="space-y-8">
+                <!-- Student reports will be rendered here by JavaScript -->
+            </div>
+        </section>
+
+        <!-- Date-wise Analysis Section -->
+        <section id="dateAnalysisSection" class="bg-white rounded-xl shadow-lg p-8 mb-8 hidden">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 border-b pb-3">
+                日付ごとの割合分析
+            </h2>
+            <p class="text-gray-700 mb-6">
+                各授業日における「知識・技能」と「思考・判断」の点数分布と高評価生徒の感想を確認できます。
+            </p>
+
+            <div class="mb-8">
+                <label for="dateSelect" class="block text-xl font-medium text-gray-700 mb-3">
+                    授業日を選択してください:
+                </label>
+                <div class="relative">
+                    <select
+                        id="dateSelect"
+                        class="block w-full md:w-1/2 lg:w-1/3 p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-purple-500 focus:border-purple-500 text-lg appearance-none bg-white pr-10 transition-all duration-200 ease-in-out hover:border-gray-400"
+                    >
+                        <!-- Options will be populated by JavaScript -->
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-700">
+                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div id="dateAnalysisContent">
+                <!-- Date analysis content will be rendered here by JavaScript -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full bg-gray-800 text-white text-center p-4 mt-8 rounded-t-3xl shadow-xl">
+        <p>&copy; 2025 授業振り返りレポート. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Raw report data
+        const rawReportData = `
+出席番号: 2
+2025年06月02日
+今回の授業の目標: 今までの計算方法の応用の因数分解を自分でちゃんと理解して計算できるようにすること
+
+授業で知識が必要だった部分・理解が深まった部分: 因数分解する前に一つの文字に着目して文字に置き換えるところ。またその一旦乗法公式に当てはめてから文字に置き換え、計算する方法をクラスメイトに教えてもらい他の問題も解けることができた。計算する前に一つの文字に着目して計算することでとても計算がしやすくなるということ。自分が使いやすい文字を括りだしてから計算する方法以外にも計算方法があることを知りました。
+
+知識・技能: 10点
+
+授業で思考力が必要だった場面・思考力が深まった部分: 文字式が3つ以上ある因数分解をするときに（◯y＋2）xや（yー4）（yー6）などを一つの文字式と考えることと、その考えを持ってたすきかけをして計算するという今までの計算方法を利用するところ。一つの文字式に置き換えてたすきかけをすることが分からなく、クラスメイトに教えてもらい何となく方法を知ることができたこと。
+
+思考・判断: 10点
+
+先生からのコメント: 複雑な因数分解に対して、文字に置き換える工夫を学べたことは素晴らしいですね。クラスメイトの助けを借りて理解を深められた経験は、今後の学習でも大いに役立つでしょう。様々な解法があることを知るのも、数学の面白さの一つです。
+
+2025年06月03日
+今回の授業の目標: 中学校で習った有理数、有限小数、無理数などを復習して理解を深めよう
+
+授業で知識が必要だった部分・理解が深まった部分: 絶対値を表すときに|a|と表せたり、|7+2|などの||のなかに1つ以上の数字があるときに先に計算してから出た数字の絶対値を出せばいいということ。無理数に入るルートを小数にしたものも無理数に入ること。
+
+知識・技能: 10点
+
+授業で思考力が必要だった場面・思考力が深まった部分: |√2−5|の絶対値を求めるときにその数字ごと一つの数字とし、マイナスになっていると考えとマイナスを掛けると絶対値になること。
+
+思考・判断: 8点
+
+先生からのコメント: 絶対値の基本的な表記法から、複雑な形での計算方法まで、しっかりと知識を吸収できていますね。特に|√2−5|のような問題で、符号の変化を考えて絶対値を求める思考力が身についたのは大きな進歩です。
+
+2025年06月10日
+今回の授業の目標: ルートを使った分母の有理化の方法を思い出し、因数分解を活用した有理化の方法を覚えよう
+
+授業で知識が必要だった部分・理解が深まった部分: 因数分解の有理化をするときに分子にもその分母にかけたものをかけるときにそのまま計算せずに先に分母の方から計算して約分できたらするという感じでしたら計算しやすくなるというところ。ルートの有理化のときそのまま分母の数をかけるのではなくルート同士で先に計算してからやったほうが楽ということを知りました。
+
+知識・技能: 10点
+
+授業で思考力が必要だった場面・思考力が深まった部分: 分母に√5＋√3という物があったときに前に習った因数分解の4番の(x+y)(x-y)=x²-y²を使って有理化すればいいというところ。
+
+思考・判断: 8点
+
+先生からのコメント: 有理化の際に約分を意識したり、因数分解の公式を応用する発想は素晴らしいです。計算をより効率的に進める工夫を自分で見つけられたのは、思考力が身についている証拠ですね。
+
+出席番号: 5
+2025年06月02日
+今回の授業の目標: 公式を覚える！ なるべく自分がわかりやすいように、簡単に！
+
+授業で知識が必要だった部分・理解が深まった部分: 文字が多い場合、Aとして置く公式。二乗の式の応用のときは｛｝で一つの二乗として置く公式。
+
+知識・技能: 9点
+
+授業で思考力が必要だった場面・思考力が深まった部分: 人に教えるときに、今まで習った公式をフル活用したこと。例えば、たすきがけと因数分解をしないと答えられない式。降べきの順にそろえて因数分解やたすきがけなど工夫しないといけない式。
+
+思考・判断: 9点
+
+先生からのコメント: 公式を効率的に覚えるという目標、そしてそれを人に教える中で、多くの公式を総合的に活用できたことは素晴らしい経験ですね。複雑な問題を前に、様々な解法を駆使する思考力も高まっています。
+
+2025年06月03日
+今回の授業の目標: 実数について 循環小数の表し方・絶対値
+
+授業で知識が必要だった部分・理解が深まった部分: 自然数や整数などの知識と今まで習った、分数を小数にすることで表す有理数などの部分。理解が深まった部分では、絶対値を|a|と書くところ。 |a|=aが絶対値にするところ。 循環小数では、繰り返される数がありその上に「・」をつけて表すところ。
+
+知識・技能: 10点
+
+授業で思考力が必要だった場面・思考力が深まった部分: 絶対値の計算です。絶対値の中にマイナスがあった場合、マイナスをかけてなくすためそこの思考力が必要だと思った。数直線では、√があった場合のところが深まった。
+
+思考・判断: 8点
+
+先生からのコメント: 実数、循環小数、絶対値といった基本的な概念をしっかり理解できていますね。特に絶対値計算における符号の処理や、√が絡む数直線上の表現について深く考えることができたのは、着実に力がついている証拠です。
+
+2025年06月10日
+今回の授業の目標: ルートの公式を分かるようにする。
+
+授業で知識が必要だった部分・理解が深まった部分: ルートの足し算は出来ないことを知識では必要。
+
+知識・技能: 6点
+
+授業で思考力が必要だった場面・思考力が深まった部分: 分母がルートの足し算になってるときは、展開の公式四番を、分母、分子にかけること。
+
+思考・判断: 7点
+
+先生からのコメント: ルートの足し算と掛け算の違いを明確に理解できたことは重要です。また、分母にルートの足し算がある場合の有理化において、因数分解の公式を応用できたのは素晴らしい思考力ですね。
+
+出席番号: 6
+2025年06月02日
+今回の授業の目標: たすき掛けを使って式を整理し、答えにつなぐ。
+
+授業で知識が必要だった部分・理解が深まった部分: 式をAなどに置き換え、整理すること。また、たすき掛けを使って答えを出すこと。
+
+知識・技能: 8点
+
+授業で思考力が必要だった場面・思考力が深まった部分: たすき掛けを使う場面、因数分解をする場面を見極めること。
+
+思考・判断: 7点
+
+先生からのコメント: 式の整理とたすき掛けの活用方法を理解し、特にどの場面でどの手法を使うべきかを見極める思考力が身についたのは素晴らしいですね。この見極めは応用問題を解く上で非常に重要になります。
+
+2025年06月03日
+今回の授業の目標: 絶対値を理解すること。なぜそうなるのかをしっかりと考えること。
+
+授業で知識が必要だった部分・理解が深まった部分: 絶対値を|a|で表す。−が付く数などはしっかりと−を外すことを理解する
+
+知識・技能: 8点
+
+授業で思考力が必要だった場面・思考力が深まった部分: 循環小数を分数で表すとこの問題を自分の力で少し考えることができた
+
+思考・判断: 7点
+
+先生からのコメント: 絶対値の意味と表し方について深く理解できたようですね。「なぜそうなるのか」という問いかけは、学習を深める上で非常に大切です。循環小数を分数にする問題に自分で取り組んだ経験は、粘り強く考える力を養うことにつながります。
+
+2025年06月10日
+今回の授業の目標: 分母の√を消す計算をできるようにする。有理化をして分母の√を消す。
+
+授業で知識が必要だった部分・理解が深まった部分: √の足し算はできない（掛け算はできる）理解できていなかった部分をクラスメイトに教えてもらいできるようになった。
+
+知識・技能: 10点
+
+授業で思考力が必要だった場面・思考力が深まった部分: 分母が√a+bになっているときには√a-bをかける。できていなかった部分をクラスメイトに教えてもらい、どうしたら有理化、式の計算になるのかを理解することができた。
+
+思考・判断: 9点
+
+先生からのコメント: 有理化の目的と、そのための具体的な方法を理解できたことは素晴らしいです。特に、クラスメイトに教えてもらいながら、分母が和の形の場合の有理化を理解できたのは、協同学習の良さを最大限に活かせtいますね。
+
+2025年06月16日
+今回の授業の目標: 不等式を解けるようにする
+
+授業で知識が必要だった部分・理解が深まった部分: マイナスで割るときは符号を逆にする
+
+知識・技能: 9点
+
+授業で思考力が必要だった場面・思考力が深まった部分: a＜bで割り切れないときはX＜分数にしてとく
+
+思考・判断: 6点
+
+先生からのコメント: 不等式の基本的なルールをしっかりと理解できましたね。特にマイナスで割るときの符号の向きの変化は重要です。割り切れない場合の表現方法についても思考を深められているようです。
+
+出席番号: 7
+2025年06月02日
+今回の授業の目標: みんなと協力して、お互いできないところを教え合うことができた
+
+授業で知識が必要だった部分・理解が深まった部分: 例題14みたいな少し複雑な長い式から因数分解して、たすきがけなどを使って問題を解くこと。
+
+知識・技能: 9点
+
+授業で思考力が必要だった場面・思考力が深まった部分: たくさんの計算方法を考え、その問題にあった計算方法を使用すること。
+
+思考・判断: 7点
+
+先生からのコメント: グループ学習で協力し、複雑な因数分解問題に取り組んだ経験は貴重ですね。多様な計算方法の中から最適なものを選ぶ思考力は、今後の学習において非常に役立つでしょう。協力し合う姿勢も素晴らしいです。
+
+2025年06月03日
+今回の授業の目標: 中学の復習、実数についてと絶対値を理解すること
+
+授業で知識が必要だった部分・理解が深まった部分: 実数aに対応する点と原点（0）からの距離を「aの絶対値」といい、｢ |a| 」と書くことがわかった。|-6+3|など一つの||の中に数字が2個以上並んだら先に||の中を計算して、計算して出た数字の絶対値を出せばいいということ。−がつく数は−を外すことを意識した。また、循環小数は繰り返される数の上に「･」が使われていることがわかった。
+
+知識・技能: 10点
+
+授業で思考力が必要だった場面・思考力が深まった部分: |√2−5|の絶対値を考えるのが少し難しかった。でも全部−をかければ絶対値を求められることがわかった。
+
+思考・判断: 8点
+
+先生からのコメント: 絶対値の定義とその計算方法、さらに循環小数の表記まで、幅広い知識を習得できていますね。特に|√2−5|のような問題で、一見複雑に見える形でも冷静に考えることで解法を見つけられたのは、思考力の成長を感じさせます。
+
+2025年06月10日
+今回の授業の目標: 例題16のような分母に√5＋√3などの式が入ってる問題で分母を有理化できるようにする。
+
+授業で知識が必要だった部分・理解が深まった部分: 展開するときの公式であった公式4の(🔴＋✖️)(🔴−✖️)の公式を利用するところ
+
+知識・技能: 8点
+
+授業で思考力が必要だった場面・思考力が深まった部分: 分母を有理化するにはなにをしたら消えるのかよく考えたところ
+
+思考・判断: 6点
+
+先生からのコメント: 分母に和の形がある有理化に対して、展開の公式を応用するという知識が身につきましたね。どうすれば有理化できるかを深く考えることで、問題解決能力が高まっています。
+
+出席番号: 10
+2025年06月02日
+今回の授業の目標: 自分で問題を解けるようにする。
+
+授業で知識が必要だった部分・理解が深まった部分: たすき掛けのやり方がいまいちわからなかったけど、わかるようになった。
+
+知識・技能: 8点
+
+授業で思考力が必要だった場面・思考力が深まった部分: たすき掛けをできるように式の形を変形する。
+
+思考・判断: 7点
+
+先生からのコメント: たすき掛けのやり方を理解し、さらにそのために式をどう変形すべきかを考える思考力が身についたのは素晴らしいですね。自分で問題を解けるようになるという目標に向けて、着実に前進しています。
+
+出席番号: 14
+2025年06月10日
+今回の授業の目標: √を使った計算の仕方(有理化)の復習。有理化を完全に覚える。
+
+授業で知識が必要だった部分・理解が深まった部分: √のある有理化のやり方。答えの約分ができるかどうかの知識(√の中にあるものと外にあるもの)。
+
+知識・技能: 9点
+
+授業で思考力が必要だった場面・思考力が深まった部分: クラスメイトに例題16の有理化を教えてもらいました。√の消し方だったり、因数分解の4番目のやり方で行うことがわかりました。
+
+思考・判断: 9点
+
+先生からのコメント: 有理化の基本から応用まで、深く理解できたようですね。特に、約分に関する知識や、クラスメイトに教えてもらいながら因数分解の公式を応用できた経験は、今後の学習に繋がる貴重な学びです。
+
+出席番号: 16
+2025年06月02日
+今回の授業の目標: たすき掛けをしっかり使えるようにする
+
+授業で知識が必要だった部分・理解が深まった部分: 因数分解をしてからたすき掛けをするところ
+
+知識・技能: 8点
+
+授業で思考力が必要だった場面・思考力が深まった部分: 文字や数に着目して解くことが大切だと思った。また、足し間違えなどに気をつける。
+
+思考・判断: 7点
+
+先生からのコメント: たすき掛けのプロセスを理解し、特に文字や数に着目することの重要性を学べたのは素晴らしいです。計算ミスを防ぐ意識も高く、丁寧な学習姿勢が見られます。
+
+2025年06月03日
+今回の授業の目標: 絶対値の求め方を覚える
+
+授業で知識が必要だった部分・理解が深まった部分: 絶対値を記号で |a|と表す。|2|と|-2|はどちらも2となるマイナスはつけない。
+
+知識・技能: 10点
+
+授業で思考力が必要だった場面・思考力が深まった部分: |a|の中に入っているものは先に計算してから値を求めることがわかった。また、|a|＋|b|のときはマイナスが付いていても正の数で表されるので引くことはしない。
+
+思考・判断: 8点
+
+先生からのコメント: 絶対値の基本的な定義から、複数の項が含まれる場合の計算順序まで、しっかりと理解できていますね。特に符号の扱いを誤らないよう考える力は、今後の計算問題でも役立つでしょう。
+
+2025年06月10日
+今回の授業の目標: ルートの使い方をしっかり覚える
+
+授業で知識が必要だった部分・理解が深まった部分: ルートの足し算は同じ数同士は足すことができるけど、違う数は足すことができないということを学んだ
+
+知識・技能: 9点
+
+授業で思考力が必要だった場面・思考力が深まった部分: クラスメイトに教えてもらって、分母が足し算になってるときはその式のマイナスの式を使うことがわかった。
+
+思考・判断: 9点
+
+先生からのコメント: ルートの足し算におけるルールを明確に理解できたことは重要です。クラスメイトの助けを借りて、分母に足し算がある場合の有理化の方法を習得できたのは、素晴らしい協同学習の成果ですね。
+
+2025年06月16日
+今回の授業の目標: 一次不等式の解き方をマスターする
+
+授業で知識が必要だった部分・理解が深まった部分: 一次不等式はルールは方程式と同じ解き方で、移行をすることがわかった。また、式をわるときはーが＋になったり、＋がーになることもわかった。
+
+知識・技能: 9点
+
+思考力が必要だった場面・思考力が深まった部分: 割ったときにーや＋のつけ間違えなどに気をつけることが大切だと思った。
+
+思考・判断: 6点
+
+先生からのコメント: 一次不等式の基本的な解法をマスターできたようですね。方程式との共通点や、符号の変化に注意するべき点も理解できています。計算ミスを防ぐ意識も高く、丁寧な学習姿勢が見られます。
+
+出席番号: 17
+2025年06月02日
+今回の授業の目標: 授業の内容を理解し、練習問題を自分ひとりで解くことのできるようにする
+
+授業で知識が必要だった部分・理解が深まった部分: 難しい因数分解をたすき掛けを使って解いた
+
+知識・技能: 8点
+
+授業で思考力が必要だった場面・思考力が深まった部分: 新しい問題を自分一人で解いたとき
+
+思考・判断: 7点
+
+先生からのコメント: たすき掛けを使った難しい因数分解を自力で解けるようになったのは、大きな成長ですね。新しい問題に一人で挑戦する姿勢は、さらなる学びに繋がるでしょう。
+
+2025年06月03日
+今回の授業の目標: 練習問題を自分で解けるようにする
+
+授業で知識が必要だった部分・理解が深まった部分: わからなかった問題を先生の話を聞いて解くことができたとき
+
+知識・技能: 6点
+
+授業で思考力が必要だった場面・思考力が深まった部分: 困っている友達に問題の解き方をおしえたとき
+
+思考・判断: 6点
+
+先生からのコメント: 先生の説明でわからなかった問題を理解し、さらにそれを友達に教えることで、自身の理解も深まったようですね。人に教える経験は、知識を定着させる上で非常に効果的です。
+
+2025年06月10日
+今回の授業の目標: 分母を有理化できるようにする
+
+授業で知識が必要だった部分・理解が深まった部分: 前の授業で習った公式を利用し問題を解くことができた。
+
+知識・技能: 7点
+
+授業で思考力が必要だった場面・思考力が深まった部分: 困っているクラスメイトに問題を教えたとき
+
+思考・判断: 7点
+
+先生からのコメント: 以前学んだ公式を有理化に応用できたのは素晴らしいです。そして、困っている友達に教えることで、自身の知識の定着と応用力がさらに高まったことでしょう。
+
+2025年06月16日
+今回の授業の目標: 一次不等式の解き方を知ろう
+
+授業で知識が必要だった部分・理解が深まった部分: 両辺を負の数で割っているときは不等号の向きが変わることやかっこを含む不等式はカッコを外してから問題を解くということがわかった
+
+知識・技能: 8点
+
+授業で思考力が必要だった場面・思考力が深まった部分: やったことのない問題を解いたとき
+
+思考・判断: 6点
+
+先生からのコメント: 一次不等式の重要なルールをしっかりと理解できたようですね。特に負の数で割る際の不等号の向きの変化や、カッコを含む不等式の解き方を学べたのは大きな進歩です。未知の問題にも積極的に取り組む姿勢が素晴らしいです。
+
+出席番号: 20
+2025年06月02日
+今回の授業の目標: 因数分解が解けるようになる
+
+授業で知識が必要だった部分・理解が深まった部分: 因数分解の解き方を理解して、1人で解けたこと
+
+知識・技能: 7点
+
+授業で思考力が必要だった場面・思考力が深まった部分: たすき掛けを使ってうまく計算すること
+
+思考・判断: 6点
+
+先生からのコメント: 因数分解の解き方を理解し、一人で問題が解けるようになったのは素晴らしい成果ですね。特にたすき掛けを効果的に使えたのは、応用力が身についている証拠です。
+
+2025年06月03日
+今回の授業の目標: 絶対値がわかるようになる
+
+授業で知識が必要だった部分・理解が深まった部分: 絶対値の表し方がわかったり、求め方が理解できた
+
+知識・技能: 7点
+
+授業で思考力が必要だった場面・思考力が深まった部分: あたいの求め方がよく理解出来て、1人で解けるようになった
+
+思考・判断: 6点
+
+先生からのコメント: 絶対値の概念と計算方法をしっかりと理解し、自力で問題が解けるようになったのは大きな進歩です。この調子で、様々な問題に挑戦してみてください。
+
+出席番号: 22
+2025年06月02日
+今回の授業の目標: 因数分解をできるようにする
+
+授業で知識が必要だった部分・理解が深まった部分: たすき掛けをするために何をするべきなのかや因数分解をするための準備の仕方
+
+知識・技能: 8点
+
+授業で思考力が必要だった場面・思考力が深まった部分: 新しいたすき掛けをするためにどうやってやるのかを考える
+
+思考・判断: 6点
+
+先生からのコメント: たすき掛けの準備から実行までを理解できたのは素晴らしいですね。新しい問題に対して、どのようにアプローチするかを自分で考える思考力は、学びに非常に重要です。
+
+2025年06月03日
+今回の授業の目標: 絶対値を使えるようにする
+
+授業で知識が必要だった部分・理解が深まった部分: √や分数などを数直線に書くことができること
+
+知識・技能: 8点
+
+授業で思考力が必要だった部分・理解が深まった部分: 循環型少数などがわかること
+
+思考・判断: 6点
+
+先生からのコメント: √や分数といった様々な数値を数直線上に表現できるようになったのは、数の概念への理解が深まった証拠です。循環小数についても理解ができたとのこと、着実に知識を広げていますね。
+
+2025年06月10日
+今回の授業の目標: ルートを使った式をできるようにする
+
+授業で知識が必要だった部分・理解が深まった部分: 中学の時にやったどのように√の式を解くかという考え
+
+知識・技能: 7点
+
+授業で思考力が必要だった場面・思考力が深まった部分: ルートとの分数でどのように式を答えていくのかを考えること
+
+思考・判断: 6点
+
+先生からのコメント: 中学での知識を基礎に、ルートを含む分数式の解き方について深く考えることができたのは素晴らしいです。過去の学びと新しい知識を結びつける思考力は、数学の力を高める上で非常に重要です。
+
+2025年06月16日
+今回の授業の目標: 不等号を使えるようにする
+
+授業で知識が必要だった部分・理解が深まった部分: 今回は、マイナスとプラスがありマイナスは、不等号の向きが変わったりしたので難しかったが移行するとマイナスになるという知識が必要だった。
+
+知識・技能: 8点
+
+授業で思考力が必要だった場面・思考力が深まった部分: クラスメイトに答え合わせをしてもらったりクラスメイトにおしえたりした
+
+思考・判断: 8点
+
+先生からのコメント: 不等号の扱い、特にマイナス符号での変化や移行のルールを理解できたのは素晴らしいです。クラスメイトとの答え合わせやクラスメイトへの指導を通じて、知識の定着と応用力がさらに高まったことでしょう。
+
+出席番号: 24
+2025年06月02日
+今回の授業の目標: 今まで勉強した公式を使うことを目標にした。
+
+授業で知識が必要だった部分・理解が深まった部分: マイナスのつけ忘れやケアレスミスが多かった。
+
+知識・技能: 6点
+
+授業で思考力が必要だった場面・思考力が深まった部分: 因数分解の問題でたすきがけラージAを使うことを意識する。
+
+思考・判断: 6点
+
+先生からのコメント: 公式を意識して使うことはもちろん、ケアレスミスに気づき改善しようとする意識はとても大切です。たすき掛けやラージAの置き換えを意識できたのは、より複雑な問題への対応力を高めるでしょう。
+
+2025年06月03日
+今回の授業の目標: 新しい単元なので先生が言っていることを理解することを目標にした。
+
+授業で知識が必要だった部分・理解が深まった部分: 単語も出てきて覚えないといけない。
+
+知識・技能: 6点
+
+授業で思考力が必要だった場面・思考力が深まった部分: 練習問題で循環小数が出てきて思考力が深まった。
+
+思考・判断: 6点
+
+先生からのコメント: 新しい単元の専門用語をしっかり覚えようとする姿勢は素晴らしいです。循環小数のような新しい概念に触れ、思考を深めることができたのは大きな学びですね。
+
+2025年06月10日
+今回の授業の目標: ルートの計算が苦手なのでしっかりと理解することを目標にした。
+
+授業で知識が必要だった部分・理解が深まった部分: 分母と分子にルートをかけることで有理化ができるようになった。またルートを外しても外の数字を掛けることを忘れないようにしたい。
+
+知識・技能: 10点
+
+授業で思考力が必要だった場面・思考力が深まった部分: 例題16の問題でクラスメイトに教えてもらい、展開の公式が使われていた。
+
+思考・判断: 9点
+
+先生からのコメント: 苦手なルート計算の有理化を克服できたのは素晴らしいですね。特に、クラスメイトとの学び合いを通じて展開の公式を応用する複雑な計算を理解できたのは、協同学習の大きな成果です。
+
+2025年06月16日
+今回の授業の目標: 不等号の解き方やルールを理解することを目標にした。
+
+授業で知識が必要だった部分・理解が深まった部分: 移行を忘れずにできた。また、移行をするときにマイナスを外して移行したり問題をやる内に凡ミスが多くなっていたので問題が多くてもしっかりと凡ミスをしないようにしたい。
+
+知識・技能: 9点
+
+授業で思考力が必要だった場面・思考力が深まった部分: 分母がマイナスになると不等号が変わることを忘れることが多く間違いが多かった。けど途中からミスが減り問題がスラスラ解けるようになった。
+
+思考・判断: 7点
+
+先生からのコメント: 不等号の解き方やルールを目標に掲げ、移行の際の注意点や凡ミスへの意識など、自己の課題を具体的に捉えられていますね。特に、間違いから学び、問題をスムーズに解けるようになったのは、努力の成果です。
+
+出席番号: 26
+2025年06月02日
+今回の授業の目標: プラスマイナスをつけ間違えないようにし、因数分解が最後まで解けるようにすること。
+
+授業で知識が必要だった部分・理解が深まった部分: たすき掛けの順番を間違えないようにする。
+
+知識・技能: 7点
+
+授業で思考力が必要だった場面・思考力が深まった部分: 因数分解の整理で自分で考えて答えを出したこと。
+
+思考・判断: 6点
+
+先生からのコメント: 符号のミスに気をつけ、たすき掛けの順序を正確に理解できたことは素晴らしいです。因数分解の整理を自分で考え抜き、答えにたどり着けたのは、思考力と粘り強さの証ですね。
+
+2025年06月03日
+今回の授業の目標: 素因数分解のやり方や√の計算方法を覚える。
+
+授業で知識が必要だった部分・理解が深まった部分: ルート計算で素因数分解を利用する場合、根号の中にある数を素因数分解し、2乗の数を見つけてルートの外に出すことを頭で考えて問題に取り組んだ。
+
+知識・技能: 10点
+
+授業で思考力が必要だった場面・思考力が深まった部分: 11分の7は素因数分解ではなく分母と分子同士で、約分できることをわからなかった自分にクラスメイトが教えてくれた。
+
+思考・判断: 9点
+
+先生からのコメント: 素因数分解を用いたルートの簡略化を頭で考えて実践できたのは素晴らしいです。また、クラスメイトから約分について学び、知識を広げられたのも、学習に対する積極的な姿勢の表れですね。
+
+2025年06月10日
+今回の授業の目標: ルートの計算で間違えないようによく見直す。
+
+授業で知識が必要だった部分・理解が深まった部分: ルートの中身はルートの中身同士で掛け算をする事根号を含む式の情報は必ず分配法則をすることだと改めて理解できた。
+
+知識・技能: 10点
+
+授業で思考力が必要だった場面・思考力が深まった部分: 練習36（2)の計算で(○＋△)²の公式を使って表す計算方法をクラスメイトの教えや先生の解説をよく聞いて理解することができた。
+
+思考・判断: 9点
+
+先生からのコメント: ルートの掛け算や分配法則について再確認し、理解を深められたのは重要です。特にクラスメイトの助けや解説を通じて、展開の公式を応用する複雑な計算を理解できたのは、着実に力がついている証拠です。
+
+出席番号: 27
+2025年06月02日
+今回の授業の目標: 最初に自分で考えて理解すること
+
+授業で知識が必要だった部分・理解が深まった部分: たすきがけしたときの答えの書き方が同じで前の授業を振り返る
+
+知識・技能: 7点
+
+授業で思考力が必要だった場面・思考力が深まった部分: 問題が多少ちがくても別の考え方を持って解こうとする
+
+思考・判断: 6点
+
+先生からのコメント: 過去の学習内容を振り返り、たすき掛けの書き方を再確認できたのは良い復習になりましたね。問題の形が少し違っても、柔軟に別の解法を模索する思考力は素晴らしいです。
+
+2025年06月03日
+今回の授業の目標: 学んだことを活用して始めてみた問題にも積極的に取り組む
+
+授業で知識が必要だった部分・理解が深まった部分: 循環小数のしくみの意味が理解できた。また問題によって文字を使った式の立て方が身についた。
+
+知識・技能: 9点
+
+授業で思考力が必要だった場面・思考力が深まった部分: 答えだけでなくなぜそうなったのかを考えることで理解が深まった。
+
+思考・判断: 6点
+
+先生からのコメント: 循環小数の仕組みを理解し、文字を使った立式ができるようになったのは大きな進歩です。「なぜそうなったのか」と深く考えることで、表面的な理解に留まらない真の学びに繋がっていますね。
+
+2025年06月10日
+今回の授業の目標: 解き方や答えを教科書で見る前に自分なりに解く
+
+授業で知識が必要だった部分・理解が深まった部分: 分母に無理数があると計算しにくくなるため、有理化することで式をすっきりさせたり、あとの計算が楽になることがわかり理解が深まった。
+
+知識・技能: 10点
+
+授業で思考力が必要だった場面・思考力が深まった部分: 追加問題でもっと簡単に答えを出すやり方を見つけること
+
+思考・判断: 7点
+
+先生からのコメント: 教科書を見る前に自分で考えるという目標、素晴らしいですね！有理化の目的を理解し、計算を楽にする工夫を見つけられたのは、深い学びと応用力の証です。常に最善の解法を模索する姿勢も素晴らしい。
+
+出席番号: 28
+2025年06月02日
+今回の授業の目標: グループで協力してやり方，解き方を理解することを目標にしました。
+
+授業で知識が必要だった部分・理解が深まった部分: 知識が深まった部分は，因数分解やたすけがけ，くくる部分などに着目して計算することができた。また，グループでできる人とできない人で分かれるためお互いに知識を深められ，わからなかったところを理解して解くことができた。
+
+知識・技能: 10点
+
+授業で思考力が必要だった場面・思考力が深まった部分: 相手にわかりやすく教えるためにはどのように伝えれば良いのかという場面で思考力が必要でまた高っまたと思います。
+
+思考・判断: 8点
+
+先生からのコメント: グループ学習で協力し、因数分解やたすき掛けのポイントを理解できたのは素晴らしいですね。特に、相手にわかりやすく教えるためにどう伝えるかを考えることは、自身の理解を深めるだけでなく、コミュニケーション能力も高める貴重な経験です。
+
+2025年06月03日
+今回の授業の目標: 循環小数について知ること
+
+授業で知識が必要だった部分・理解が深まった部分: 循環小数をXとして置き換え，方程式を作るという知識が必要だった。桁の数分をXにかけ，方程式を作る部分で理解を深めることができた。
+
+知識・技能: 10点
+
+授業で思考力が必要だった場面・思考力が深まった部分: 循環小数を分数に変えるのが難しかったが，自分で調べそこからどのようにして理解をするのかという思考力が必要だった。
+
+思考・判断: 9点
+
+先生からのコメント: 循環小数を分数で表す方法について、方程式を用いた解法を理解できたのは大きな進歩ですね。難しさを感じつつも、自分で調べて理解を深めようとする探求心と思考力は、今後の学習でも非常に重要になります。
+
+出席番号: 32
+2025年06月02日
+今回の授業の目標: 他の人に教えられること
+
+授業で知識が必要だった部分・理解が深まった部分: たすき掛けをする部分
+
+知識・技能: 6点
+
+授業で思考力が必要だった場面・思考力が深まった部分: 他の人に教える場面
+
+思考・判断: 6点
+
+先生からのコメント: たすき掛けを理解し、さらにそれを人に教えるという目標を設定したのは素晴らしいです。人に教えることで、自身の理解もより確実なものになったことでしょう。
+
+2025年06月03日
+今回の授業の目標: 授業の内容をしっかりと覚える
+
+授業で知識が必要だった部分・理解が深まった部分: 小数の繰り返される部分の上に「・」を書く部分
+
+知識・技能: 8点
+
+授業で思考力が必要だった場面・思考力が深まった部分: どこで繰り返されているのかを見極める部分
+
+思考・判断: 6点
+
+先生からのコメント: 循環小数の表記方法を正確に覚えるという目標、そして、どこが繰り返しの部分なのかを見極める思考力が身についたのは素晴らしいですね。細かい点にも着目できるのは強みです。
+
+2025年06月10日
+今回の授業の目標: 内容を理解する
+
+授業で知識が必要だった部分・理解が深まった部分: 分母を有利化させるときに分母と同じ√をかけること
+
+知識・技能: 8点
+
+授業で思考力が必要だった場面・思考力が深まった部分: どのような√をかけるか考えるとき
+
+思考・判断: 6点
+
+先生からのコメント: 有理化の基本的な知識をしっかりと理解できましたね。特に、どのような√を分母・分子にかけるべきかを自分で考える思考力は、今後の計算問題で非常に役立つでしょう。
+
+2025年06月16日
+今回の授業の目標: 1次不等式を理解する
+
+授業で知識が必要だった部分・理解が深まった部分: 移行をするとき
+
+知識・技能: 5点
+
+授業で思考力が必要だった場面・思考力が深まった部分: 負の数で割るときに不等式の向きが変わる
+
+思考・判断: 6点
+
+先生からのコメント: 1次不等式に関する基本的な理解は進んでいるようですね。移行のルールや、負の数で割る際の不等号の向きの変化といった重要な点に注目できたのは素晴らしいです。
+
+出席番号: 33
+2025年06月02日
+今回の授業の目標: 問題が解けるように友達に聞いたり自分が考えたりする
+
+授業で知識が必要だった部分・理解が深まった部分: 因数分解の長い問題が難しく解けなかったので友達に聞いたりする。たすきがけをちゃんとやる
+
+知識・技能: 8点
+
+思考力が必要だった場面・思考力が深まった部分: 長い問題の因数分解ではたすきがけをして問題を解く
+
+思考・判断: 6点
+
+先生からのコメント: 難しい問題に対して、友達に質問したり自分で考えたりする積極的な姿勢が素晴らしいですね。長い因数分解問題でたすき掛けを適用できたのは、着実に力がついている証拠です。
+
+出席番号: 34
+2025年06月02日
+今回の授業の目標: 因数分解する部分とたすき掛けする部分を見分けて計算していくこと
+
+授業で知識が必要だった部分・理解が深まった部分: 1つの文字に着目する計算を忘れないようにする部分
+
+知識・技能: 7点
+
+授業で思考力が必要だった場面・思考力が深まった部分: 式の計算方法を一つだけで考えるんじゃなく、別の計算方法を考えることを意識する
+
+思考・判断: 6点
+
+先生からのコメント: 因数分解とたすき掛けの使い分けを意識できたのは素晴らしいです。一つの解法に固執せず、複数の計算方法を検討する思考力は、数学の問題解決において非常に重要な能力です。
+
+2025年06月03日
+今回の授業の目標: 平方根の細かい部分を再確認する。わからない問題は班のみんなでわかるようにすること
+
+授業で知識が必要だった部分・理解が深まった部分: 素因数分解した後にまだ計算ができるところがないかどうかを確認すること。絶対値を理解する
+
+知識・技能: 9点
+
+授業で思考力が必要だった場面・思考力が深まった部分: 小さい数字でも素因数分解ができそうなところは計算して確認するといいと思った。循環小数を分数で表す方法をしっかり考える部分。
+
+思考・判断: 8点
+
+先生からのコメント: 平方根の細部まで確認し、素因数分解後の再確認を徹底しようとする姿勢は素晴らしいです。循環小数を分数で表す方法について深く考えることができたのも、着実に思考力が身についている証拠ですね。
+
+2025年06月10日
+今回の授業の目標: わからないところは近くの人に聞いて理解する
+
+授業で知識が必要だった部分・理解が深まった部分: 符号をしっかり見分ける部分
+
+知識・技能: 6点
+
+授業で思考力が必要だった場面・思考力が深まった部分: 有理化の式に他の数が増えてもしっかり落ち着いて計算する
+
+思考・判断: 6点
+
+先生からのコメント: わからないことを周囲に質問し、理解を深めようとする姿勢が素晴らしいです。有理化の際も、焦らず落ち着いて計算を進められる思考力が身についていますね。符号の見極めも重要です。
+
+出席番号: 36
+2025年06月02日
+今回の授業の目標: いろいろな因数分解を学ぼう
+
+授業で知識が必要だった部分・理解が深まった部分: たすきがけの応用が出てきたので、はじめは難しいと思いましたが、問題を解くうちに解き方を理解することができた。
+
+知識・技能: 9点
+
+授業で思考力が必要だった場面・思考力が深まった部分: 答えにたどり着くまでの式を考えるとき
+
+思考・判断: 6点
+
+先生からのコメント: たすき掛けの応用問題に初めは難しさを感じつつも、自力で解き方を理解できたのは素晴らしい成長ですね。答えに至るまでの過程を深く考えることで、問題解決能力が高まっています。
+
+2025年06月03日
+今回の授業の目標: 中学校でに習っている内容の復習と、新たに習う内容について学んで知識を広げよう
+
+授業で知識が必要だった部分・理解が深まった部分: ・絶対値の表し方について|a|と表すこと）。・循環小数について（繰り返す数字の最初と最後の数字の上に点「・」をつけること）。
+
+知識・技能: 9点
+
+授業で思考力が必要だった場面・思考力が深まった部分: √の付く場合の数直線上での表し方について（√2=1.41421356, √3=1.732050を語呂で覚えておく）
+
+思考・判断: 8点
+
+先生からのコメント: 中学校での復習から新しい内容まで、幅広く知識を吸収できていますね。特に、√がつく数を数直線上に表す際に、語呂合わせで近似値を覚える工夫は素晴らしいです。
+
+2025年06月10日
+今回の授業の目標: ルートを使った計算法を学ぼう。
+
+授業で知識が必要だった部分・理解が深まった部分: 分母の有理化をするとき（ルートが付く場合の足し算の注意など）
+
+知識・技能: 9点
+
+授業で思考力が必要だった場面・思考力が深まった部分: ルートの足し算のとき、ルートの中の数字が異なる場合、足し算はできない。有理化の際は、分母の根号（ルート√）を分子と分母のどちらにも掛ける。
+
+思考・判断: 8点
+
+先生からのコメント: ルートの足し算と有理化のルールについて、重要な点をしっかり理解できたようですね。特に、分母に足し算がある場合の有理化の注意点を把握できたのは素晴らしいです。
+`;
+
+        let parsedData = {};
+        let selectedAttendanceNumber = '';
+        let activeTab = 'studentReport'; // 'studentReport' or 'dateAnalysis'
+        const chartInstances = {}; // Chart.jsインスタンスを保持するためのオブジェクト
+
+        // DOM要素の参照
+        const studentReportTab = document.getElementById('studentReportTab');
+        const dateAnalysisTab = document.getElementById('dateAnalysisTab');
+        const studentReportSection = document.getElementById('studentReportSection');
+        const dateAnalysisSection = document.getElementById('dateAnalysisSection');
+        const attendanceSelect = document.getElementById('attendanceSelect');
+        const studentReportsContainer = document.getElementById('studentReportsContainer');
+        const dateSelect = document.getElementById('dateSelect');
+        const dateAnalysisContent = document.getElementById('dateAnalysisContent');
+
+        // カラーグラデーション生成関数
+        const generateShades = (baseColor, count = 11) => {
+            const hexToRgb = (hex) => {
+                const bigint = parseInt(hex.slice(1), 16);
+                return {
+                    r: (bigint >> 16) & 255,
+                    g: (bigint >> 8) & 255,
+                    b: bigint & 255
+                };
+            };
+
+            const rgbToHex = (r, g, b) =>
+                '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+
+            const baseRgb = hexToRgb(baseColor);
+            const shades = [];
+
+            // 10点 (最高) が最も濃く、0点 (最低) が最も薄くなるように調整
+            for (let i = 0; i < count; i++) {
+                const factor = i / (count - 1); // 0 (0点) から 1 (10点)
+                // 濃い色から明るい色へグラデーション
+                const r = Math.round(baseRgb.r * (1 - factor) + 255 * factor);
+                const g = Math.round(baseRgb.g * (1 - factor) + 255 * factor);
+                const b = Math.round(baseRgb.b * (1 - factor) + 255 * factor);
+                shades.push(rgbToHex(r, g, b));
+            }
+            // 逆順にすることで、インデックス0が薄い色（低得点）、インデックス10が濃い色（高得点）になる
+            return shades.reverse();
+        };
+
+        const blueShades = generateShades('#2563EB'); // 知識・技能のベースカラー
+        const greenShades = generateShades('#16A34A'); // 思考・判断のベースカラー
+
+        // レポートデータをパースする関数
+        const parseReportData = (data) => {
+            const reports = {}; // Outer object: { attendanceNumber: { date: reportObject, ... }, ... }
+            const studentBlocks = data.split('出席番号:').slice(1); // Split by attendance number, discard the first empty part
+
+            studentBlocks.forEach(block => {
+                const lines = block.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+                if (lines.length === 0) return;
+
+                const attendanceNumber = lines[0].trim(); // First line after "出席番号:" is the number
+                const studentReportsByDate = {}; // Object to hold reports for this specific student
+
+                let currentReport = {}; // Temp object for the current report details
+                let parsingDateBlock = false; // Flag to indicate we are inside a date's report block
+
+                // Iterate through the lines of the current student's block, starting from the second line
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i];
+
+                    if (line.match(/^\d{4}年\d{2}月\d{2}日$/)) {
+                        // New date encountered, means a new report block for this student
+                        // Before starting a new report, check and save the previous one if it's complete and valid
+                        if (currentReport.date) {
+                            const isReportValid = currentReport.goal && currentReport.knowledge && currentReport.thinking && currentReport.teacherComment &&
+                                currentReport.goal !== '未記入' && currentReport.knowledge !== '未記入' && currentReport.thinking !== '未記入' && currentReport.teacherComment !== '未記入';
+                            if (isReportValid) {
+                                studentReportsByDate[currentReport.date] = { ...currentReport, attendanceNumber: attendanceNumber };
+                            }
+                        }
+                        currentReport = { date: line }; // Start new report for this date
+                        parsingDateBlock = true;
+                    } else if (parsingDateBlock) { // Only process if we are inside a date's report block
+                        if (line.startsWith('今回の授業の目標:')) {
+                            currentReport.goal = line.replace('今回の授業の目標:', '').trim();
+                        } else if (line.startsWith('授業で知識が必要だった部分・理解が深まった部分:')) {
+                            currentReport.knowledge = line.replace('授業で知識が必要だった部分・理解が深まった部分:', '').trim();
+                        } else if (line.startsWith('知識・技能:')) {
+                            currentReport.knowledgeScore = parseInt(line.replace('知識・技能:', '').trim());
+                        } else if (line.startsWith('授業で思考力が必要だった場面・思考力が深まった部分:')) {
+                            currentReport.thinking = line.replace('授業で思考力が必要だった場面・思考力が深まった部分:', '').trim();
+                        } else if (line.startsWith('思考・判断:')) {
+                            currentReport.thinkingScore = parseInt(line.replace('思考・判断:', '').trim());
+                        } else if (line.startsWith('先生からのコメント:')) {
+                            currentReport.teacherComment = line.replace('先生からのコメント:', '').trim();
+                            // End of a report for this date, check and save it
+                            const isReportValid = currentReport.goal && currentReport.knowledge && currentReport.thinking && currentReport.teacherComment &&
+                                currentReport.goal !== '未記入' && currentReport.knowledge !== '未記入' && currentReport.thinking !== '未記入' && currentReport.teacherComment !== '未記入';
+                            if (isReportValid) {
+                                studentReportsByDate[currentReport.date] = { ...currentReport, attendanceNumber: attendanceNumber };
+                            }
+                            currentReport = {}; // Reset for the next report (might be a new date or new student)
+                            parsingDateBlock = false; // Reset flag
+                        }
+                    }
+                }
+
+                // After looping through all lines of a student's block, save any remaining report if it was being built and valid
+                if (currentReport.date) {
+                    const isReportValid = currentReport.goal && currentReport.knowledge && currentReport.thinking && currentReport.teacherComment &&
+                        currentReport.goal !== '未記入' && currentReport.knowledge !== '未記入' && currentReport.thinking !== '未記入' && currentReport.teacherComment !== '未記入';
+                    if (isReportValid) {
+                        studentReportsByDate[currentReport.date] = { ...currentReport, attendanceNumber: attendanceNumber };
+                    }
+                }
+
+                reports[attendanceNumber] = studentReportsByDate;
+            });
+
+            // Final pass to fill in missing data and set defaults, for reports that were valid
+            for (const studentId in reports) {
+                for (const date in reports[studentId]) {
+                    const report = reports[studentId][date];
+                    // Ensure scores are parsed correctly, default to -1 if missing or invalid for processing
+                    report.knowledgeScore = report.knowledgeScore !== undefined && !isNaN(report.knowledgeScore) ? report.knowledgeScore : -1;
+                    report.thinkingScore = report.thinkingScore !== undefined && !isNaN(report.thinkingScore) ? report.thinkingScore : -1;
+                }
+            }
+            return reports;
+        };
+
+
+        // 解析用にデータを集計する関数
+        const aggregateAnalysisData = (reports) => {
+            const analysisData = {};
+            Object.values(reports).forEach(studentReportsByDate => {
+                Object.values(studentReportsByDate).forEach(report => {
+                    const date = report.date;
+                    if (!analysisData[date]) {
+                        analysisData[date] = {
+                            knowledgeScores: {},
+                            thinkingScores: {},
+                            totalStudents: 0,
+                            knowledgeTotal: 0,
+                            thinkingTotal: 0,
+                            allReports: []
+                        };
+                    }
+                    analysisData[date].totalStudents++;
+                    analysisData[date].knowledgeTotal += report.knowledgeScore !== -1 ? report.knowledgeScore : 0;
+                    analysisData[date].thinkingTotal += report.thinkingScore !== -1 ? report.thinkingScore : 0;
+                    
+                    // スコアが-1 (未提出) の場合は集計に含めない
+                    if (report.knowledgeScore !== -1) {
+                        analysisData[date].knowledgeScores[report.knowledgeScore] = (analysisData[date].knowledgeScores[report.knowledgeScore] || 0) + 1;
+                    }
+                    if (report.thinkingScore !== -1) {
+                        analysisData[date].thinkingScores[report.thinkingScore] = (analysisData[date].thinkingScores[report.thinkingScore] || 0) + 1;
+                    }
+                    analysisData[date].allReports.push(report);
+                });
+            });
+
+            // 日付で降順にソート
+            return Object.fromEntries(
+                Object.entries(analysisData).sort(([dateA, dataA], [dateB, dataB]) => { 
+                    const parseDate = (d) => new Date(d.replace(/年|月/g, '/').replace(/日/, ''));
+                    return parseDate(dateB) - parseDate(dateA); 
+                })
+            );
+        };
+
+        // Chart.jsの円グラフを作成・更新する関数
+        const createPieChart = (canvasId, data, colors, title) => {
+            const ctx = document.getElementById(canvasId);
+            if (!ctx) return;
+
+            // 既存のChartインスタンスがあれば破棄
+            if (chartInstances[canvasId]) {
+                chartInstances[canvasId].destroy();
+                delete chartInstances[canvasId]; 
+            }
+
+            // データをスコアで降順にソートし、高い点数から時計回りに表示
+            const sortedScores = Object.keys(data).map(Number).sort((a, b) => b - a); // 点数を数値として降順ソート
+            const sortedLabels = sortedScores.map(score => `${score}点`);
+            const sortedDataValues = sortedScores.map(score => data[score]);
+            // スコアに対応する色を割り当てる (colors配列のインデックスと点数が一致するようにする)
+            const sortedColors = sortedScores.map(score => colors[score] || '#CCCCCC'); // 適切な色が見つからない場合のフォールバックカラー
+
+            chartInstances[canvasId] = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: sortedLabels,
+                    datasets: [{
+                        data: sortedDataValues,
+                        backgroundColor: sortedColors,
+                        borderColor: '#ffffff',
+                        borderWidth: 1,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right', // 凡例を右に配置
+                            labels: {
+                                font: {
+                                    size: 14,
+                                    family: 'Inter, sans-serif'
+                                }
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: title,
+                            font: {
+                                size: 16,
+                                family: 'Inter, sans-serif',
+                                weight: 'bold'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed !== null) {
+                                        label += context.parsed;
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                },
+            });
+        };
+
+        let activeAnalysisDate = null;
+        let activeHighRatedTab = 'knowledge'; // 'knowledge' or 'thinking'
+
+        // 学生レポート表示関数
+        const renderStudentReport = () => {
+            studentReportsContainer.innerHTML = ''; // Clear previous reports
+            const studentReports = parsedData[selectedAttendanceNumber];
+
+            if (!selectedAttendanceNumber || !studentReports || Object.keys(studentReports).length === 0) {
+                studentReportsContainer.innerHTML = `
+                    <div class="bg-gray-50 rounded-xl shadow-md p-6 border border-gray-200 text-center text-gray-700">
+                        <p class="text-2xl font-bold text-red-500">該当するレポートがありません。</p>
+                        <p class="mt-2 text-lg">選択された生徒のレポートが見つからないか、記入済みのレポートがありません。</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const sortedReports = Object.values(studentReports).sort((a, b) =>
+                new Date(b.date.replace(/年|月/g, '/').replace(/日/, '')) - new Date(a.date.replace(/年|月/g, '/').replace(/日/, ''))
+            );
+
+            sortedReports.forEach((report, index) => {
+                const reportDiv = document.createElement('div');
+                reportDiv.className = "bg-gray-50 rounded-xl shadow-md p-6 border border-gray-200 transform transition duration-300 hover:scale-[1.01]";
+                reportDiv.innerHTML = `
+                    <p class="text-xl font-bold text-gray-800 mb-4">${report.date}</p>
+                    <p class="text-base text-gray-700 mb-3">
+                        <span class="font-semibold text-gray-800">今回の授業の目標:</span> ${report.goal || '未記入'}
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                        <div class="bg-blue-100 border border-blue-300 p-4 rounded-lg shadow-sm">
+                            <p class="text-blue-800 font-semibold mb-2">知識・技能</p>
+                            <p class="text-blue-700 text-sm">${report.knowledge || '未記入'}</p>
+                        </div>
+                        <div class="bg-green-100 border border-green-300 p-4 rounded-lg shadow-sm">
+                            <p class="text-green-800 font-semibold mb-2">思考・判断</p>
+                            <p class="text-green-700 text-sm">${report.thinking || '未記入'}</p>
+                        </div>
+                    </div>
+                    ${report.teacherComment ? `
+                        <div class="bg-yellow-50 border border-yellow-200 p-4 rounded-lg shadow-sm">
+                            <p class="text-yellow-800 font-semibold mb-2">先生からのコメント:</p>
+                            <p class="text-yellow-800 text-sm">${report.teacherComment}</p>
+                        </div>
+                    ` : ''}
+                `;
+                studentReportsContainer.appendChild(reportDiv);
+            });
+        };
+
+        // 高評価生徒の表示を更新する関数
+        const updateHighRatedStudents = (date, tab) => {
+            const analysisData = aggregateAnalysisData(parsedData);
+            const dateData = analysisData[date];
+            if (!dateData) return '';
+
+            const highKnowledgeStudents = [...dateData.allReports]
+                .sort((a, b) => b.knowledgeScore - a.knowledgeScore || parseInt(a.attendanceNumber) - parseInt(b.attendanceNumber))
+                .slice(0, Math.max(5, dateData.allReports.filter(r => r.knowledgeScore >= 9).length || 0));
+
+            const highThinkingStudents = [...dateData.allReports]
+                .sort((a, b) => b.thinkingScore - a.thinkingScore || parseInt(a.attendanceNumber) - parseInt(b.attendanceNumber))
+                .slice(0, Math.max(5, dateData.allReports.filter(r => r.thinkingScore >= 9).length || 0));
+
+            const studentsToShow = (tab === 'knowledge') ? highKnowledgeStudents : highThinkingStudents;
+            const borderClass = (tab === 'knowledge') ? 'border-blue-200' : 'border-green-200';
+            const knowledgeBg = 'bg-blue-50 border border-blue-200';
+            const thinkingBg = 'bg-green-50 border border-green-200';
+            const knowledgeText = 'text-blue-700';
+            const thinkingText = 'text-green-700';
+            const yellowBg = 'bg-yellow-50 border border-yellow-200';
+            const yellowText = 'text-yellow-800';
+
+
+            if (studentsToShow.length === 0) {
+                return `<p class="col-span-full text-center text-gray-600">この日の${tab === 'knowledge' ? '知識・技能' : '思考・判断'}で高評価の生徒はいません。</p>`;
+            }
+
+            return `
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    ${studentsToShow.map(report => `
+                        <div class="bg-white rounded-xl shadow-md p-5 border ${borderClass} hover:shadow-lg transition-shadow duration-300">
+                            <p class="text-lg font-semibold text-gray-800 mb-2">出席番号: ${report.attendanceNumber}</p>
+                            <p class="text-sm text-gray-600 mb-3">目標: ${report.goal || '未記入'}</p>
+                            <div class="${knowledgeBg} p-3 rounded-lg mb-3">
+                                <p class="${knowledgeText} font-semibold mb-1">知識・技能: ${report.knowledgeScore}点</p>
+                                <p class="${knowledgeText} text-sm">${report.knowledge || '未記入'}</p>
+                            </div>
+                            <div class="${thinkingBg} p-3 rounded-lg mb-3">
+                                <p class="${thinkingText} font-semibold mb-1">思考・判断: ${report.thinkingScore}点</p>
+                                <p class="${thinkingText} text-sm">${report.thinking || '未記入'}</p>
+                            </div>
+                            ${report.teacherComment ? `
+                                <div class="${yellowBg} p-3 rounded-lg">
+                                    <p class="${yellowText} font-semibold text-sm">先生からのコメント:</p>
+                                    <p class="${yellowText} text-sm">${report.teacherComment}</p>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        };
+
+        // 日付別分析コンテンツ表示関数
+        const showDateAnalysisContent = (date) => {
+            const analysisData = aggregateAnalysisData(parsedData);
+            const dateData = analysisData[date];
+
+            if (!dateData) {
+                dateAnalysisContent.innerHTML = `
+                    <div class="p-6 bg-white rounded-xl shadow-md text-center text-gray-700">
+                        <h3 class="text-xl font-bold mb-4">データがありません</h3>
+                        <p>この日付のレポートはまだ提出されていないか、データが見つかりません。</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const totalStudents = dateData.totalStudents;
+            const knowledgeAvg = (dateData.knowledgeTotal / totalStudents).toFixed(1);
+            const thinkingAvg = (dateData.thinkingTotal / totalStudents).toFixed(1);
+
+            dateAnalysisContent.innerHTML = `
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-8 transform transition duration-300 hover:scale-105">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">
+                        ${date} の分析
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-blue-50 border border-blue-200 p-4 rounded-lg shadow-sm">
+                            <p class="text-blue-800 font-semibold">この日の生徒総数: ${totalStudents}名</p>
+                            <p class="text-blue-800 font-semibold">知識・技能平均点: ${knowledgeAvg}点</p>
+                        </div>
+                        <div class="bg-green-50 border border-green-200 p-4 rounded-lg shadow-sm">
+                            <p class="text-green-800 font-semibold">思考・判断平均点: ${thinkingAvg}点</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                        <div class="bg-white p-4 rounded-lg shadow-inner border border-gray-200 flex flex-col items-center">
+                            <canvas id="knowledgeChart-${date}" class="w-full h-64 md:h-80 lg:h-96"></canvas>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow-inner border border-gray-200 flex flex-col items-center">
+                            <canvas id="thinkingChart-${date}" class="w-full h-64 md:h-80 lg:h-96"></canvas>
+                        </div>
+                    </div>
+
+                    <h4 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">
+                        この日の学習内容
+                    </h4>
+                    <p class="text-gray-700 mb-6">${dateData.allReports[0]?.goal || '情報なし'}</p>
+
+                    <h4 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">
+                        この日の高評価だった生徒の感想
+                    </h4>
+                    <div class="flex justify-center mb-6">
+                        <div class="bg-gray-100 p-1 rounded-full flex space-x-1">
+                            <button id="highKnowledgeTab" class="px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 ease-in-out bg-white text-gray-800 shadow-sm font-semibold">
+                                知識
+                            </button>
+                            <button id="highThinkingTab" class="px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 ease-in-out text-gray-600 hover:bg-gray-200">
+                                思考
+                            </button>
+                        </div>
+                    </div>
+                    <div id="highRatedStudentsContainer">
+                        <!-- High rated students will be rendered here by JS -->
+                    </div>
+                </div>
+            `;
+
+            // Charts need to be created AFTER the canvas elements are in the DOM
+            createPieChart(`knowledgeChart-${date}`, dateData.knowledgeScores, blueShades, '知識・技能 点数割合');
+            createPieChart(`thinkingChart-${date}`, dateData.thinkingScores, greenShades, '思考・判断 点数割合');
+
+            // Add event listeners for high-rated student tabs after they are rendered
+            const highKnowledgeTabBtn = document.getElementById('highKnowledgeTab');
+            const highThinkingTabBtn = document.getElementById('highThinkingTab');
+            const highRatedStudentsContainer = document.getElementById('highRatedStudentsContainer');
+
+            highKnowledgeTabBtn.addEventListener('click', () => {
+                activeHighRatedTab = 'knowledge';
+                highRatedStudentsContainer.innerHTML = updateHighRatedStudents(date, activeHighRatedTab);
+                highKnowledgeTabBtn.classList.add('bg-white', 'text-gray-800', 'shadow-sm', 'font-semibold');
+                highKnowledgeTabBtn.classList.remove('text-gray-600', 'hover:bg-gray-200');
+                highThinkingTabBtn.classList.remove('bg-white', 'text-gray-800', 'shadow-sm', 'font-semibold');
+                highThinkingTabBtn.classList.add('text-gray-600', 'hover:bg-gray-200');
+            });
+
+            highThinkingTabBtn.addEventListener('click', () => {
+                activeHighRatedTab = 'thinking';
+                highRatedStudentsContainer.innerHTML = updateHighRatedStudents(date, activeHighRatedTab);
+                highThinkingTabBtn.classList.add('bg-white', 'text-gray-800', 'shadow-sm', 'font-semibold');
+                highThinkingTabBtn.classList.remove('text-gray-600', 'hover:bg-gray-200');
+                highKnowledgeTabBtn.classList.remove('bg-white', 'text-gray-800', 'shadow-sm', 'font-semibold');
+                highKnowledgeTabBtn.classList.add('text-gray-600', 'hover:bg-gray-200');
+            });
+
+            // Initial render of high-rated students
+            highRatedStudentsContainer.innerHTML = updateHighRatedStudents(date, activeHighRatedTab);
+            // Ensure the correct tab is active visually on initial load
+            if (activeHighRatedTab === 'knowledge') {
+                highKnowledgeTabBtn.classList.add('bg-white', 'text-gray-800', 'shadow-sm', 'font-semibold');
+                highKnowledgeTabBtn.classList.remove('text-gray-600', 'hover:bg-gray-200');
+                highThinkingTabBtn.classList.remove('bg-white', 'text-gray-800', 'shadow-sm', 'font-semibold');
+                highThinkingTabBtn.classList.add('text-gray-600', 'hover:bg-gray-200');
+            } else {
+                highThinkingTabBtn.classList.add('bg-white', 'text-gray-800', 'shadow-sm', 'font-semibold');
+                highThinkingTabBtn.classList.remove('text-gray-600', 'hover:bg-gray-200');
+                highKnowledgeTabBtn.classList.remove('bg-white', 'text-gray-800', 'shadow-sm', 'font-semibold');
+                highKnowledgeTabBtn.classList.add('text-gray-600', 'hover:bg-gray-200');
+            }
+        };
+
+        // タブ切り替え関数
+        const handleTabChange = (tab) => {
+            activeTab = tab;
+            if (activeTab === 'studentReport') {
+                studentReportSection.classList.remove('hidden');
+                dateAnalysisSection.classList.add('hidden');
+                studentReportTab.classList.add('bg-blue-600', 'text-white', 'shadow-md');
+                studentReportTab.classList.remove('bg-gray-100', 'text-gray-700', 'hover:bg-gray-200');
+                dateAnalysisTab.classList.remove('bg-purple-600', 'text-white', 'shadow-md');
+                dateAnalysisTab.classList.add('bg-gray-100', 'text-gray-700', 'hover:bg-gray-200');
+                renderStudentReport();
+            } else {
+                studentReportSection.classList.add('hidden');
+                dateAnalysisSection.classList.remove('hidden');
+                dateAnalysisTab.classList.add('bg-purple-600', 'text-white', 'shadow-md');
+                dateAnalysisTab.classList.remove('bg-gray-100', 'text-gray-700', 'hover:bg-gray-200');
+                studentReportTab.classList.remove('bg-blue-600', 'text-white', 'shadow-md');
+                studentReportTab.classList.add('bg-gray-100', 'text-gray-700', 'hover:bg-gray-200');
+                
+                const analysisData = aggregateAnalysisData(parsedData);
+                const sortedDates = Object.keys(analysisData);
+                if (sortedDates.length > 0) {
+                    activeAnalysisDate = sortedDates[0]; // 最新の日付をデフォルトで表示
+                    dateSelect.value = activeAnalysisDate; // ドロップダウンも更新
+                } else {
+                    activeAnalysisDate = null; // データがない場合はクリア
+                    dateSelect.innerHTML = '<option value="">分析データがありません</option>';
+                }
+                showDateAnalysisContent(activeAnalysisDate);
+            }
+        };
+
+        // 初期化処理
+        window.onload = () => {
+            parsedData = parseReportData(rawReportData);
+
+            // Populate attendance select
+            const allAttendanceNumbers = Object.keys(parsedData).sort((a, b) => parseInt(a) - parseInt(b));
+            if (allAttendanceNumbers.length > 0) {
+                attendanceSelect.innerHTML = allAttendanceNumbers.map(num => `<option value="${num}">出席番号: ${num}</option>`).join('');
+                selectedAttendanceNumber = allAttendanceNumbers[0];
+            } else {
+                attendanceSelect.innerHTML = '<option value="">該当するレポートがありません</option>';
+                selectedAttendanceNumber = '';
+            }
+            renderStudentReport();
+
+            // Populate date select for analysis
+            const availableDates = Object.keys(aggregateAnalysisData(parsedData)).sort((a, b) => {
+                const parseDate = (d) => new Date(d.replace(/年|月/g, '/').replace(/日/, ''));
+                return parseDate(b) - parseDate(a);
+            });
+            if (availableDates.length > 0) {
+                dateSelect.innerHTML = availableDates.map(date => `<option value="${date}">${date}</option>`).join('');
+                activeAnalysisDate = availableDates[0]; // Set default active date
+            } else {
+                dateSelect.innerHTML = '<option value="">分析データがありません</option>';
+                activeAnalysisDate = null;
+            }
+
+            // Event Listeners
+            studentReportTab.addEventListener('click', () => handleTabChange('studentReport'));
+            dateAnalysisTab.addEventListener('click', () => handleTabChange('dateAnalysis'));
+            attendanceSelect.addEventListener('change', (e) => {
+                selectedAttendanceNumber = e.target.value;
+                renderStudentReport();
+            });
+            dateSelect.addEventListener('change', (e) => {
+                activeAnalysisDate = e.target.value;
+                showDateAnalysisContent(activeAnalysisDate);
+            });
+
+            // Initial tab display
+            handleTabChange('studentReport'); // Default to student report view
+        };
+    </script>
+</body>
+</html>
